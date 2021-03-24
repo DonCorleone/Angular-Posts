@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Observable, throwError } from "rxjs";
+import { BehaviorSubject, combineLatest, Observable, throwError } from "rxjs";
+import { debounceTime, map, switchMap, tap } from "rxjs/operators";
 import { PostCategory } from "./post-category";
 
 @Injectable({
@@ -9,12 +10,42 @@ import { PostCategory } from "./post-category";
 export class PostCategoryService {
   private postCategoriesUrl = 'api/postCategories';
 
+  textEnteredSubject = new BehaviorSubject<string>('');
+  textEntered$ = this.textEnteredSubject.asObservable();
+
   allCategories$ = this.http.get<PostCategory[]>(this.postCategoriesUrl);
+
+  // Autocomplete the categories going to the server each time
+  filteredCategories$ = this.textEntered$.pipe(
+    debounceTime(250),
+    switchMap(enteredText => this.getCategorySuggestions(enteredText)),
+    map(categories => categories.sort((a, b) => a.name < b.name ? -1 : 1)),
+    tap(result => console.log(JSON.stringify(result)))
+  );
+
+  // Autocomplete the categories going to the server one time
+  categories2$ = combineLatest([
+    this.allCategories$.pipe(
+      map(categories => categories.sort((a, b) => a.name < b.name ? -1 : 1)),
+    ),
+    this.textEntered$.pipe(
+      debounceTime(250),
+      tap(text => console.log('Entered', text))
+    )
+  ]).pipe(
+    map(([categories, enteredText]) => categories.filter(category =>
+      category.name.toLocaleLowerCase().indexOf(enteredText.toLocaleLowerCase()) === 0))
+  );
 
   constructor(private http: HttpClient) { }
 
-  getCategorySuggestions(enteredText: string): Observable<PostCategory[]> {
+  private getCategorySuggestions(enteredText: string): Observable<PostCategory[]> {
     return this.http.get<PostCategory[]>(this.postCategoriesUrl + '?name=^' + enteredText);
+  }
+
+  processEnteredText(text: string): void {
+    // Emit the entered text
+    this.textEnteredSubject.next(text);
   }
 
   private handleError(err: any): Observable<never> {
