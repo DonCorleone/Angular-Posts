@@ -9,7 +9,7 @@ import { PostService } from './post.service';
   styleUrls: ['./post-list.component.css']
 })
 export class PostListComponent implements OnInit {
-  title = 'All Posts';
+  title = 'Posts by Category';
   selectedCategory: string = '';
 
   categories$ = this.postCategoryService.filteredCategories$;

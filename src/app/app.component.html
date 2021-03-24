@@ -10,12 +10,12 @@
       <a class="nav-link"
          routerLink='/posts'
          routerLinkActive="active"
-         [routerLinkActiveOptions]="{ exact : true}">Posts</a>
+         [routerLinkActiveOptions]="{ exact : true}">Posts by Category</a>
     </li>
     <li class="nav-item">
       <a class="nav-link"
-         [routerLink]="['/posts/alternate']"
-         routerLinkActive="active">Posts (Alternate UI)</a>
+         routerLink='/posts/user'
+         routerLinkActive="active">Your Posts</a>
     </li>
   </ul>
 </nav>

@@ -13,7 +13,7 @@
                  aria-label="Category"
                  matInput
                  [matAutocomplete]="auto"
-                 [(ngModel)]="selectedCategory"
+                 [ngModel]="selectedCategory"
                  (ngModelChange)="processText($event)">
           <mat-autocomplete #auto="matAutocomplete"
                             [displayWith]="displayWith"

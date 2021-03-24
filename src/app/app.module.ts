@@ -11,11 +11,13 @@ import { AppComponent } from './app.component';
 import { PostListComponent } from './posts/post-list.component';
 import { AppData } from './app-data';
 import { MaterialModule } from 'src/material-module';
+import { PostsForUserComponent } from './posts-for-user/posts-for-user.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    PostListComponent
+    PostListComponent,
+    PostsForUserComponent
   ],
   imports: [
     BrowserModule,
