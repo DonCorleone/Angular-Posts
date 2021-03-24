@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { Post } from '../posts/post';
 import { PostService } from '../posts/post.service';
 
 @Component({
@@ -15,9 +16,17 @@ export class PostsForUserComponent implements OnInit {
   errorMessage$ = this.errorMessageSubject.asObservable();
 
   postsForUser$ = this.postService.postsForUser$.pipe(
+    map(posts => {
+      if (posts.length === 0) {
+        this.setErrorMessage('No posts found for this user. (Sample data: wizard1, witch1, wiccan1');
+        return [] as Post[];
+      }
+      this.setErrorMessage('');
+      return posts;
+    }),
     catchError(err => {
-      this.errorMessageSubject.next(err);
-      return EMPTY;
+      this.setErrorMessage(err);
+      return [];
     })
   );
 
@@ -28,5 +37,9 @@ export class PostsForUserComponent implements OnInit {
 
   getPosts(): void {
     this.postService.selectedUserChanged(this.userName);
+  }
+
+  setErrorMessage(message:string): void {
+    this.errorMessageSubject.next(message);
   }
 }

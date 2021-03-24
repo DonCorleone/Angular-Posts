@@ -16,14 +16,10 @@ export class UserService {
     // Get the users that match the defined user name.
     // (There should only be one)
     // Use regex ^ and $ to find exact matches.
+    // If there are no matches, return an id of 0
     return this.http.get<User[]>(`${this.usersUrl}?userName=^${userName}$`).pipe(
       catchError(this.handleError),
-      map(users => {
-        if (users.length === 0) {
-          throw new Error('Please enter a user name. (Sample data: wizard1, witch1, wiccan1');
-        }
-        return users[0].id;
-      })
+      map(users => (users.length === 0) ? 0 : users[0].id)
     )
   }
 

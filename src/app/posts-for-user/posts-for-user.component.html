@@ -7,24 +7,25 @@
     <div class="container">
       <div class="input-group mb-3">
         <div class="input-group-append">
-          <input type="search"
-                 placeholder="User name"
-                 aria-label="User name"
-                 [(ngModel)]="userName">
-          <button type="button"
-                  class="btn btn-outline-secondary"
-                  (click)="getPosts()">
-            <span style="color:cornflowerblue">
-              <i class="fa fa-search"></i>
-            </span>
-          </button>
+            <input type="search"
+                   placeholder="User name"
+                   aria-label="User name"
+                   [(ngModel)]="userName"
+                   (keyup.enter)="getPosts()">
+            <button class="btn btn-outline-secondary"
+                    (click)="getPosts()">
+              <span style="color:cornflowerblue">
+                <i class="fa fa-search"></i>
+              </span>
+            </button>
         </div>
       </div>
     </div>
 
-    <div class="table-responsive">
+    <div class="table-responsive"
+         *ngIf="postsForUser$ | async as posts">
       <table class="table mb-0"
-             *ngIf="postsForUser$ | async as posts">
+             *ngIf="posts.length">
         <thead>
           <tr>
             <th>Title</th>

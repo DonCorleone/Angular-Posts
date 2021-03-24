@@ -7,22 +7,28 @@
     <div class="container">
       <div class="row justify-content-between">
         <div class="col-3">
-          <input type="search"
-                 #categoryInput
+          <input type="text"
+                 class="form-control"
+                 [(ngModel)]="selectedCategory"
+                 [ngbTypeahead]="search"
+                 [inputFormatter]="formatter"
+                 [resultFormatter]="formatter"
+                 [editable]='false'
+                 #instance="ngbTypeahead" />
+          <!-- (focus)="focus$.next($any($event).target.value)"
+                 (click)="click$.next($any($event).target.value)" -->
+          <!-- <input type="search"
+                 list="categories"
                  placeholder="Select category"
                  aria-label="Category"
-                 matInput
-                 [matAutocomplete]="auto"
-                 [ngModel]="selectedCategory"
-                 (ngModelChange)="processText($event)">
-          <mat-autocomplete #auto="matAutocomplete"
-                            [displayWith]="displayWith"
-                            (optionSelected)="categorySelected($event.option.value)">
-            <mat-option *ngFor="let category of categories$ | async"
-                        [value]="category">
-              {{category.name}}
-            </mat-option>
-          </mat-autocomplete>
+                 [(ngModel)]="selectedCategory"
+                 (change)="categorySelected($event)" />
+          <datalist id="categories">
+            <option *ngFor="let category of categories$ | async"
+                    [value]="category.name"
+                    #catEl
+                    [attr.data-value]="category"></option>
+          </datalist> -->
         </div>
       </div>
     </div>
@@ -37,8 +43,8 @@
             <th>Category</th>
           </tr>
         </thead>
-        <tbody *ngFor="let post of posts">
-          <tr>
+        <tbody>
+          <tr *ngFor="let post of posts">
             <td>{{ post.title }}</td>
             <td>{{ post.body }}</td>
             <td>{{ post.categoryId }}</td>
