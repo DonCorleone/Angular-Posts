@@ -29,13 +29,13 @@ export class PostService {
     switchMap(userName => this.http.get<User[]>(`${this.usersUrl}?userName=${userName}`).pipe(
       catchError(this.handleError)
     )),
-    // map(users => {
-    //   if (users.length === 0) {
-    //    return throwError('Please enter a user name. (Sample data: wizard1, witch1, wiccan1');
-    //   }
-    //   return users[0];
-    // }),
-    map(users => users[0]),
+    map(users => {
+      if (users.length === 0) {
+       throw new Error('Please enter a user name. (Sample data: wizard1, witch1, wiccan1');
+      }
+      return users[0];
+    }),
+    // map(users => users[0]),
     switchMap(user => this.http.get<Post[]>(`${this.postsUrl}?userId=${user.id}`)),
     catchError(this.handleError)
   );
