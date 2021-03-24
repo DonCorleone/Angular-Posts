@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, Subject, throwError } from "rxjs";
+import { BehaviorSubject, Observable, of, Subject, throwError } from "rxjs";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
-import { User } from "../Users/user";
+import { UserService } from "../users/user.service";
 
 import { Post } from "./post";
 
@@ -11,7 +11,6 @@ import { Post } from "./post";
 })
 export class PostService {
   private postsUrl = 'api/posts';
-  private usersUrl = 'api/users';
 
   allPosts$ = this.http.get<Post[]>(this.postsUrl);
 
@@ -26,21 +25,18 @@ export class PostService {
   selectedUser$ = this.selectedUserSubject.asObservable();
 
   postsForUser$ = this.selectedUser$.pipe(
-    switchMap(userName => this.http.get<User[]>(`${this.usersUrl}?userName=${userName}`).pipe(
-      catchError(this.handleError)
-    )),
-    map(users => {
-      if (users.length === 0) {
-       throw new Error('Please enter a user name. (Sample data: wizard1, witch1, wiccan1');
-      }
-      return users[0];
-    }),
-    // map(users => users[0]),
-    switchMap(user => this.http.get<Post[]>(`${this.postsUrl}?userId=${user.id}`)),
-    catchError(this.handleError)
+    switchMap(userName => this.userService.getUserId(userName)),
+    switchMap(userId => this.getPostsForUser(userId))
   );
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient,
+              private userService: UserService) { }
+
+  private getPostsForUser(userId: number): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.postsUrl}?userId=${userId}`).pipe(
+      catchError(this.handleError)
+    )
+  }
 
   selectedCategoryChanged(categoryId: number): void {
     this.selectedCategorySubject.next(categoryId);

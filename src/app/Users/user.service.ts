@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { Subject } from "rxjs";
-import { switchMap } from "rxjs/operators";
+import { Observable, throwError } from "rxjs";
+import { catchError, map } from "rxjs/operators";
 
 import { User } from "./user";
 
@@ -12,16 +12,36 @@ import { User } from "./user";
 export class UserService {
   private usersUrl = 'api/users';
 
-  selectedUserSubject = new Subject<string>();
-  selectedUser$ = this.selectedUserSubject.asObservable();
-
-  user$ = this.selectedUser$.pipe(
-    switchMap(userName => this.http.get<User>(`${this.usersUrl}?userName=${userName}`))
-  );
+  getUserId(userName: string): Observable<number> {
+    // Get the users that match the defined user name.
+    // (There should only be one)
+    // Use regex ^ and $ to find exact matches.
+    return this.http.get<User[]>(`${this.usersUrl}?userName=^${userName}$`).pipe(
+      catchError(this.handleError),
+      map(users => {
+        if (users.length === 0) {
+          throw new Error('Please enter a user name. (Sample data: wizard1, witch1, wiccan1');
+        }
+        return users[0].id;
+      })
+    )
+  }
 
   constructor(private http: HttpClient) { }
 
-  selectedUserChanged(userName: string): void {
-    this.selectedUserSubject.next(userName);
+  private handleError(err: any): Observable<never> {
+    // in a real world app, we may send the server to some remote logging infrastructure
+    // instead of just logging it to the console
+    let errorMessage: string;
+    if (err.error instanceof ErrorEvent) {
+      // A client-side or network error occurred. Handle it accordingly.
+      errorMessage = `An error occurred: ${err.error.message}`;
+    } else {
+      // The backend returned an unsuccessful response code.
+      // The response body may contain clues as to what went wrong,
+      errorMessage = `Backend returned code ${err.status}: ${err.body.error}`;
+    }
+    console.error(err);
+    return throwError(errorMessage);
   }
 }
