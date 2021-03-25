@@ -10,6 +10,7 @@
           <div class="input-group">
             <input type="text"
                    class="form-control"
+                   placeholder="Select a Category"
                    [(ngModel)]="selectedCategory"
                    (selectItem)="categorySelected($event.item)"
                    [ngbTypeahead]="search"
@@ -30,9 +31,10 @@
       </div>
     </div>
     <br>
-    <div class="table-responsive">
+    <div class="table-responsive"
+         *ngIf="postsForCategory$ | async as posts">
       <table class="table mb-0"
-             *ngIf="postsForCategory$ | async as posts">
+             *ngIf="posts.length">
         <thead>
           <tr>
             <th>Title</th>

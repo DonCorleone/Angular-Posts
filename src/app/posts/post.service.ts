@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, Observable, Subject, throwError } from "rxjs";
-import { catchError, map, switchMap, tap } from "rxjs/operators";
+import { BehaviorSubject, combineLatest, from, Observable, of, Subject, throwError, zip } from "rxjs";
+import { catchError, filter, groupBy, map, mergeMap, reduce, switchMap, tap, toArray } from "rxjs/operators";
 import { PostCategoryService } from "../post-categories/post-category.service";
 import { UserService } from "../users/user.service";
 
@@ -15,6 +15,24 @@ export class PostService {
 
   allPosts$ = this.http.get<Post[]>(this.postsUrl);
 
+  postsGroupedByCategory$ = this.allPosts$.pipe(
+    mergeMap(posts => posts),
+    groupBy(post => post.categoryId, post => post),
+    mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
+    toArray(),
+    tap(x => console.log('grouping', x))
+  );
+
+  // postsGroupedByCategory$ = this.allPosts$.pipe(
+  //   mergeMap(posts => posts),
+  //   groupBy(post => post.categoryId, post => post),
+  //   mergeMap(group$ =>
+  //     group$.pipe(reduce((acc, cur) => [...acc, cur], ([] as Post)))),
+  //   map(arr => ({ id: parseInt(arr[0], 10), values: arr.slice(1) })),
+  //   toArray(),
+  //   tap(x => console.log('grouping', x))
+  // );
+
   selectedCategorySubject = new BehaviorSubject<number>(0);
   selectedCategory$ = this.selectedCategorySubject.asObservable();
 
@@ -22,12 +40,13 @@ export class PostService {
     this.selectedCategory$,
     this.categoryService.allCategories$
   ]).pipe(
-    switchMap(([categoryId, categories]) => this.http.get<Post[]>(this.postsUrl + (categoryId === 0 ? '' : `?categoryId=${categoryId}`)).pipe(
-      map(posts => posts.map(post => ({
-        ...post,
-        category: categories.find(c => post.categoryId === c.id)?.name
-      }) as Post))
-    ))
+    switchMap(([categoryId, categories]) => (categoryId === 0) ? of([]) :
+      this.http.get<Post[]>(`${this.postsUrl}?categoryId=${categoryId}`).pipe(
+        map(posts => posts.map(post => ({
+          ...post,
+          category: categories.find(c => post.categoryId === c.id)?.name
+        }) as Post))
+      ))
   );
 
   selectedUserSubject = new Subject<string>();

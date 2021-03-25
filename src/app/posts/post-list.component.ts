@@ -52,13 +52,13 @@ export class PostListComponent implements OnInit {
   }
 
   categorySelected(category: PostCategory): void {
-    console.log('Category Selected', category);
     this.postService.selectedCategoryChanged(category.id);
   }
 
   // Clear the category display
   // And display all of the posts
   onClear(): void {
+    this.selectedCategory=undefined;
     this.clear$.next('');
     this.postService.selectedCategoryChanged(0);
   }

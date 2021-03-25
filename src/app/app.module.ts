@@ -11,12 +11,14 @@ import { AppComponent } from './app.component';
 import { PostListComponent } from './posts/post-list.component';
 import { AppData } from './app-data';
 import { PostsForUserComponent } from './posts-for-user/posts-for-user.component';
+import { PostsGroupbyComponent } from './posts-groupby/posts-groupby.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     PostListComponent,
-    PostsForUserComponent
+    PostsForUserComponent,
+    PostsGroupbyComponent
   ],
   imports: [
     BrowserModule,
