@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { combineLatest, Observable, OperatorFunction } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
+import { combineLatest, merge, Observable, OperatorFunction, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { PostCategory } from '../post-categories/post-category';
 import { PostCategoryService } from '../post-categories/post-category.service';
 import { PostService } from './post.service';
@@ -12,11 +13,37 @@ import { PostService } from './post.service';
 })
 export class PostListComponent implements OnInit {
   title = 'Posts by Category';
-  selectedCategory!: PostCategory;
 
-  categories$ = this.postCategoryService.filteredCategories$;
+  // Needed for Typeahead open on focus and clear
+  @ViewChild('instance', { static: true })
+  instance!: NgbTypeahead;
+  focus$ = new Subject<string>();
+  click$ = new Subject<string>();
+  clear$ = new Subject<string>();
+
+  categories$ = this.postCategoryService.allCategories$;
+  selectedCategory: PostCategory | undefined;
 
   postsForCategory$ = this.postService.postsForCategory$;
+
+  // Formats the typeahead entry
+  formatter = (category: PostCategory) => category.name;
+
+  // Handles the typeahead
+  search: OperatorFunction<string, readonly PostCategory[]> = (text$: Observable<string>) => {
+    const debouncedText$ = text$.pipe(debounceTime(200), distinctUntilChanged());
+    const clicksWithClosedPopup$ = this.click$.pipe(filter(() => !this.instance.isPopupOpen()));
+
+    const operations$ = merge(debouncedText$, clicksWithClosedPopup$, this.focus$, this.clear$);
+
+    return combineLatest([
+      operations$,
+      this.categories$
+    ]).pipe(
+      map(([text, categories]) =>
+        text === '' ? categories : categories.filter(c => new RegExp(`^${text}`, 'i').test(c.name)))
+    );
+  }
 
   constructor(private postService: PostService,
     private postCategoryService: PostCategoryService) { }
@@ -24,27 +51,16 @@ export class PostListComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  processText(text: string): void {
-    console.log('Processed text', text);
-    this.postCategoryService.processEnteredText(text);
-  }
-
-  categorySelected(category: any): void {
-    console.log(category);
+  categorySelected(category: PostCategory): void {
+    console.log('Category Selected', category);
     this.postService.selectedCategoryChanged(category.id);
   }
 
-  displayWith(category: PostCategory): string {
-    return category?.name;
+  // Clear the category display
+  // And display all of the posts
+  onClear(): void {
+    this.clear$.next('');
+    this.postService.selectedCategoryChanged(0);
   }
 
-  search: OperatorFunction<string, readonly PostCategory[]> = (text$: Observable<string>) =>
-    combineLatest([text$, this.postCategoryService.filteredCategories$]).pipe(
-      debounceTime(200),
-      distinctUntilChanged(),
-      filter(term => term.length >= 2),
-      map(([text, categories]) => categories.filter(c => new RegExp(`^${text}`, 'i').test(c.name)))
-    );
-
-  formatter = (category: PostCategory) => category.name;
 }

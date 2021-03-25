@@ -1,7 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, Observable, of, Subject, throwError } from "rxjs";
+import { BehaviorSubject, combineLatest, Observable, Subject, throwError } from "rxjs";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
+import { PostCategoryService } from "../post-categories/post-category.service";
 import { UserService } from "../users/user.service";
 
 import { Post } from "./post";
@@ -17,9 +18,17 @@ export class PostService {
   selectedCategorySubject = new BehaviorSubject<number>(0);
   selectedCategory$ = this.selectedCategorySubject.asObservable();
 
-  postsForCategory$ = this.selectedCategory$.pipe(
-    switchMap(categoryId => this.http.get<Post[]>(this.postsUrl + (categoryId === 0 ? '' : `?categoryId=${categoryId}`)))
-  )
+  postsForCategory$ = combineLatest([
+    this.selectedCategory$,
+    this.categoryService.allCategories$
+  ]).pipe(
+    switchMap(([categoryId, categories]) => this.http.get<Post[]>(this.postsUrl + (categoryId === 0 ? '' : `?categoryId=${categoryId}`)).pipe(
+      map(posts => posts.map(post => ({
+        ...post,
+        category: categories.find(c => post.categoryId === c.id)?.name
+      }) as Post))
+    ))
+  );
 
   selectedUserSubject = new Subject<string>();
   selectedUser$ = this.selectedUserSubject.asObservable();
@@ -30,11 +39,21 @@ export class PostService {
   );
 
   constructor(private http: HttpClient,
-              private userService: UserService) { }
+    private userService: UserService,
+    private categoryService: PostCategoryService) { }
 
   private getPostsForUser(userId: number): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.postsUrl}?userId=${userId}`).pipe(
+    const posts$ = this.http.get<Post[]>(`${this.postsUrl}?userId=${userId}`).pipe(
       catchError(this.handleError)
+    )
+    return combineLatest([
+      posts$,
+      this.categoryService.allCategories$
+    ]).pipe(
+      map(([posts, categories]) => posts.map(post => ({
+        ...post,
+        category: categories.find(c => post.categoryId === c.id)?.name
+      }) as Post)),
     )
   }
 

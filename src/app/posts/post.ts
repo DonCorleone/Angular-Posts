@@ -4,4 +4,5 @@ export interface Post {
   body: string;
   userId: number;
   categoryId: number;
+  category?: string;
 }

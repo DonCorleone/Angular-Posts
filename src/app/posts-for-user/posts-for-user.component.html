@@ -31,15 +31,13 @@
             <th>Title</th>
             <th>Body</th>
             <th>Category</th>
-            <th>User</th>
           </tr>
         </thead>
         <tbody *ngFor="let post of posts">
           <tr>
             <td>{{ post.title }}</td>
             <td>{{ post.body }}</td>
-            <td>{{ post.categoryId }}</td>
-            <td>{{ post.userId }}</td>
+            <td>{{ post.category }}</td>
           </tr>
         </tbody>
       </table>

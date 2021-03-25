@@ -25,6 +25,13 @@ export class PostData {
       userId: 1
     },
     {
+      id: 4,
+      title: "The Characters!",
+      body: "The characters came to life on that stage.",
+      categoryId: 8,
+      userId: 1
+    },
+    {
       id: 5,
       title: 'Emerald City Here We Come!',
       body: "If you've missed the magic of the Emerald City, here's your chance to experience it all over again in a fresh new way",
@@ -37,6 +44,13 @@ export class PostData {
       body: "The songs make you feel like you are defying gravity and floating on air",
       categoryId: 2,
       userId: 3
+    },
+    {
+      id: 7,
+      title: "The Actors Fell Flat",
+      body: "The actors didn't breathe life into any of the characters.",
+      categoryId: 8,
+      userId: 1
     },
     {
       id: 8,
@@ -58,6 +72,20 @@ export class PostData {
       body: 'The emphasis on popularity and power makes this entire story just too sad',
       categoryId: 9,
       userId: 3
+    },
+    {
+      id: 11,
+      title: 'No restroom line',
+      body: 'For once there was no line for the ladies room!',
+      categoryId: 5,
+      userId: 2
+    },
+    {
+      id: 12,
+      title: 'Better SWAG',
+      body: 'It would have been fun to have more/better SWAG',
+      categoryId: 3,
+      userId: 1
     }
   ];
 }
