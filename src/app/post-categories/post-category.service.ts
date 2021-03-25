@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { BehaviorSubject, combineLatest, Observable, throwError } from "rxjs";
-import { debounceTime, map, shareReplay, switchMap, tap } from "rxjs/operators";
+import { catchError, debounceTime, map, shareReplay, switchMap, tap } from "rxjs/operators";
 import { PostCategory } from "./post-category";
 
 @Injectable({
@@ -10,8 +10,13 @@ import { PostCategory } from "./post-category";
 export class PostCategoryService {
   private postCategoriesUrl = 'api/postCategories';
 
-  // Sort the categories for the type ahead display
   allCategories$ = this.http.get<PostCategory[]>(this.postCategoriesUrl).pipe(
+    catchError(this.handleError),
+    shareReplay(1)
+  );
+
+  // Sort the categories for the type ahead display
+  allCategoriesSorted$ = this.allCategories$.pipe(
     map(categories => categories.sort((a, b) => a.name < b.name ? -1 : 1)),
     shareReplay(1)
   );
@@ -31,7 +36,7 @@ export class PostCategoryService {
   // Manual autocomplete the categories going to the server one time
   // Not currently used
   filteredCategories2$ = combineLatest([
-    this.allCategories$,
+    this.allCategoriesSorted$,
     this.textEntered$.pipe(
       debounceTime(250),
       tap(text => console.log('Entered', text))

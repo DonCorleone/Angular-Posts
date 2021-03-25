@@ -21,7 +21,7 @@ export class PostListComponent implements OnInit {
   click$ = new Subject<string>();
   clear$ = new Subject<string>();
 
-  categories$ = this.postCategoryService.allCategories$;
+  categories$ = this.postCategoryService.allCategoriesSorted$;
   selectedCategory: PostCategory | undefined;
 
   postsForCategory$ = this.postService.postsForCategory$;

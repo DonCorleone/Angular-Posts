@@ -6,37 +6,23 @@
   <div class="card-body"
        *ngIf="postsGroupedByCategory$ | async as groups">
 
-
     <div class="table-responsive">
       <table class="table mb-0">
         <thead>
           <tr>
             <th>Category</th>
-            <th>Posts</th>
+            <th>Title</th>
+            <th>Body</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let group of groups">
-            <td>{{ group[0] }}</td>
-            <td>
-              <div class="table-responsive">
-                <table class="table mb-0">
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Body</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let post of group[1]">
-                      <td>{{ post.title }}</td>
-                      <td>{{ post.body }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </td>
-          </tr>
+          <ng-container *ngFor="let group of groups">
+            <tr *ngFor="let post of group[1]; let i = index">
+              <td>{{ i===0 ? post.category : '' }}</td>
+              <td>{{ post.title }}</td>
+              <td>{{ post.body }}</td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>

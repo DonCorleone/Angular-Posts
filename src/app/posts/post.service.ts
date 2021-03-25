@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, from, Observable, of, Subject, throwError, zip } from "rxjs";
-import { catchError, filter, groupBy, map, mergeMap, reduce, switchMap, tap, toArray } from "rxjs/operators";
+import { BehaviorSubject, combineLatest, Observable, of, Subject, throwError, zip } from "rxjs";
+import { catchError, groupBy, map, mergeMap, reduce, switchMap, tap, toArray } from "rxjs/operators";
 import { PostCategoryService } from "../post-categories/post-category.service";
 import { UserService } from "../users/user.service";
 
@@ -15,30 +15,58 @@ export class PostService {
 
   allPosts$ = this.http.get<Post[]>(this.postsUrl);
 
-  postsGroupedByCategory$ = this.allPosts$.pipe(
+  // Match up posts with their category name and sort by the category name.
+  postsWithCategorySorted$ = combineLatest([
+    this.allPosts$,
+    this.categoryService.allCategories$
+  ]).pipe(
+    // Match up each post's category id with the category name
+    map(([posts, categories]) => posts.map(post => ({
+      ...post,
+      category: categories.find(c => post.categoryId === c.id)?.name
+    }) as Post)),
+    // Sort by category name
+    map(posts => posts.sort((a, b) => (a.category || '') < (b.category || '') ? -1 : 1))
+  );
+
+  // Group all posts by category, sorted on the category name
+  postsGroupedByCategory$ = this.postsWithCategorySorted$.pipe(
+    // Emit the array elements one by one for the groupBy
     mergeMap(posts => posts),
+    groupBy(post => post.categoryId, post => post),
+    // Merge each grouped set of posts
+    mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
+    // Emit one array of the grouped results
+    toArray()
+  );
+
+  // Group all posts by category and sorted on the category name
+  // All in one pipeline
+  postsGroupedByCategory2$ = combineLatest([
+    this.allPosts$,
+    this.categoryService.allCategories$
+  ]).pipe(
+    mergeMap(([posts, categories]) => {
+      // Match up each post's category id with the category name
+      const mappedPosts = posts.map(post => ({
+        ...post,
+        category: categories.find(c => post.categoryId === c.id)?.name
+      }) as Post);
+      // Sort by category name
+      mappedPosts.sort((a, b) => (a.category || '') < (b.category || '') ? -1 : 1);
+      return mappedPosts;
+    }),
     groupBy(post => post.categoryId, post => post),
     mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
     toArray(),
-    tap(x => console.log('grouping', x))
   );
-
-  // postsGroupedByCategory$ = this.allPosts$.pipe(
-  //   mergeMap(posts => posts),
-  //   groupBy(post => post.categoryId, post => post),
-  //   mergeMap(group$ =>
-  //     group$.pipe(reduce((acc, cur) => [...acc, cur], ([] as Post)))),
-  //   map(arr => ({ id: parseInt(arr[0], 10), values: arr.slice(1) })),
-  //   toArray(),
-  //   tap(x => console.log('grouping', x))
-  // );
 
   selectedCategorySubject = new BehaviorSubject<number>(0);
   selectedCategory$ = this.selectedCategorySubject.asObservable();
 
   postsForCategory$ = combineLatest([
     this.selectedCategory$,
-    this.categoryService.allCategories$
+    this.categoryService.allCategoriesSorted$
   ]).pipe(
     switchMap(([categoryId, categories]) => (categoryId === 0) ? of([]) :
       this.http.get<Post[]>(`${this.postsUrl}?categoryId=${categoryId}`).pipe(
@@ -67,7 +95,7 @@ export class PostService {
     )
     return combineLatest([
       posts$,
-      this.categoryService.allCategories$
+      this.categoryService.allCategoriesSorted$
     ]).pipe(
       map(([posts, categories]) => posts.map(post => ({
         ...post,
