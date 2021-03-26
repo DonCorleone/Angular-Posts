@@ -1,9 +1,9 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Observable, throwError } from "rxjs";
-import { catchError, map } from "rxjs/operators";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
-import { User } from "./user";
+import { User } from './user';
 
 // OR the functionality can be in its own User Service
 @Injectable({
@@ -20,7 +20,7 @@ export class UserService {
     return this.http.get<User[]>(`${this.usersUrl}?userName=^${userName}$`).pipe(
       catchError(this.handleError),
       map(users => (users.length === 0) ? 0 : users[0].id)
-    )
+    );
   }
 
   constructor(private http: HttpClient) { }

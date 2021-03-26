@@ -1,4 +1,4 @@
-import { Post } from "./post";
+import { Post } from './post';
 
 export class PostData {
 
@@ -19,15 +19,15 @@ export class PostData {
     },
     {
       id: 3,
-      title: "Satisfaction Guaranteed",
-      body: "What a great way to spend an evening.",
+      title: 'Satisfaction Guaranteed',
+      body: 'What a great way to spend an evening.',
       categoryId: 10,
       userId: 1
     },
     {
       id: 4,
-      title: "The Characters!",
-      body: "The characters came to life on that stage.",
+      title: 'The Characters!',
+      body: 'The characters came to life on that stage.',
       categoryId: 8,
       userId: 1
     },
@@ -41,13 +41,13 @@ export class PostData {
     {
       id: 6,
       title: 'I Am Defying Gravity',
-      body: "The songs make you feel like you are defying gravity and floating on air",
+      body: 'The songs make you feel like you are defying gravity and floating on air',
       categoryId: 2,
       userId: 3
     },
     {
       id: 7,
-      title: "The Actors Fell Flat",
+      title: 'The Actors Fell Flat',
       body: "The actors didn't breathe life into any of the characters.",
       categoryId: 8,
       userId: 1

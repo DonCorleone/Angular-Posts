@@ -18,7 +18,7 @@ export class PostsForUserComponent implements OnInit {
   postsForUser$ = this.postService.postsForUser$.pipe(
     map(posts => {
       if (posts.length === 0) {
-        this.setErrorMessage('No posts found for this user. (Sample data: wizard1, witch1, wiccan1');
+        this.setErrorMessage('No posts found for this user. (Sample data: wizard1, witch1, wiccan1)');
         return [] as Post[];
       }
       this.setErrorMessage('');
@@ -39,7 +39,7 @@ export class PostsForUserComponent implements OnInit {
     this.postService.selectedUserChanged(this.userName);
   }
 
-  setErrorMessage(message:string): void {
+  setErrorMessage(message: string): void {
     this.errorMessageSubject.next(message);
   }
 }

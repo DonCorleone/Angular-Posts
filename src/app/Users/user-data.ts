@@ -1,4 +1,4 @@
-import { User } from "./user";
+import { User } from './user';
 
 export class UserData {
 
@@ -15,5 +15,5 @@ export class UserData {
       id: 3,
       userName: 'wiccan1'
     }
-  ]
+  ];
 }

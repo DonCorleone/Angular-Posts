@@ -1,4 +1,4 @@
-import { PostCategory } from "./post-category";
+import { PostCategory } from './post-category';
 
 export class PostCategoryData {
 

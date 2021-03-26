@@ -1,8 +1,8 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, Observable, throwError } from "rxjs";
-import { catchError, debounceTime, map, shareReplay, switchMap, tap } from "rxjs/operators";
-import { PostCategory } from "./post-category";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, combineLatest, Observable, throwError } from 'rxjs';
+import { catchError, debounceTime, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { PostCategory } from './post-category';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +17,7 @@ export class PostCategoryService {
 
   // Sort the categories for the type ahead display
   allCategoriesSorted$ = this.allCategories$.pipe(
-    map(categories => categories.sort((a, b) => a.name < b.name ? -1 : 1)),
+    map(categories => this.sortCategories(categories)),
     shareReplay(1)
   );
 
@@ -27,9 +27,9 @@ export class PostCategoryService {
   textEntered$ = this.textEnteredSubject.asObservable();
 
   filteredCategories$ = this.textEntered$.pipe(
-    debounceTime(250),
+    debounceTime(200),
     switchMap(enteredText => this.getCategorySuggestions(enteredText)),
-    map(categories => categories.sort((a, b) => a.name < b.name ? -1 : 1)),
+    map(categories => this.sortCategories(categories)),
     tap(result => console.log(JSON.stringify(result)))
   );
 
@@ -38,7 +38,7 @@ export class PostCategoryService {
   filteredCategories2$ = combineLatest([
     this.allCategoriesSorted$,
     this.textEntered$.pipe(
-      debounceTime(250),
+      debounceTime(200),
       tap(text => console.log('Entered', text))
     )
   ]).pipe(
@@ -55,6 +55,10 @@ export class PostCategoryService {
   processEnteredText(text: string): void {
     // Emit the entered text
     this.textEnteredSubject.next(text);
+  }
+
+  sortCategories(categories: PostCategory[]): PostCategory[] {
+    return categories.sort((a, b) => a.name < b.name ? -1 : 1);
   }
 
   private handleError(err: any): Observable<never> {

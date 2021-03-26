@@ -46,7 +46,7 @@ export class PostListComponent implements OnInit {
   }
 
   constructor(private postService: PostService,
-    private postCategoryService: PostCategoryService) { }
+              private postCategoryService: PostCategoryService) { }
 
   ngOnInit(): void {
   }
@@ -58,7 +58,7 @@ export class PostListComponent implements OnInit {
   // Clear the category display
   // And display all of the posts
   onClear(): void {
-    this.selectedCategory=undefined;
+    this.selectedCategory = undefined;
     this.clear$.next('');
     this.postService.selectedCategoryChanged(0);
   }
