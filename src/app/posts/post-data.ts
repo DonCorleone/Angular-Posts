@@ -86,6 +86,14 @@ export class PostData {
       body: 'It would have been fun to have more/better SWAG',
       categoryId: 3,
       userId: 1
+    },
+    // Invalid category on purpose
+    {
+      id: 13,
+      title: 'I Loved It',
+      body: 'I loved every minute! Definitely worth the cost of admission',
+      categoryId: 42,
+      userId: 1
     }
   ];
 }
