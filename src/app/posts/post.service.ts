@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable, of, Subject, throwError, zip } from 'rxjs';
-import { catchError, concatMap, groupBy, map, mergeMap, switchMap, tap, toArray } from 'rxjs/operators';
+import { catchError, concatAll, concatMap, groupBy, map, mergeMap, reduce, switchMap, tap, toArray } from 'rxjs/operators';
 import { PostCategory } from '../post-categories/post-category';
 import { PostCategoryService } from '../post-categories/post-category.service';
 import { UserService } from '../users/user.service';
@@ -30,21 +30,38 @@ export class PostService {
   );
   // Observable<Post[]>
 
+  // Use the groupBy RxJS operator
   // Group all posts by category, sorted on the category name
-  // Returns an array where each array element is an array
+  // Returns an array where each array element is a tuple
   // containing the categoryId and array of posts
   postsGroupedByCategory$ = this.postsWithCategorySorted$.pipe(
-    // Emit the array elements one by one for the groupBy
-    concatMap(posts => posts),
+    // Emit the posts one by one for the groupBy
+    concatAll(),
+    // Emit GroupedObservable, one for each key (categoryId)
+    // Key selector; Element selector
     groupBy(post => post.categoryId, post => post),
     // Merge each grouped set of posts
+    // For each group, zip combines the Observables
+    // and emits a tuple with two elements: [number, Post[]]
     mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
-    // Emit one array of the grouped results
+    // Emit the tuples into a single array [number, Post[]][]
     toArray()
   );
 
+  // Use array reduce
   // Group all posts by category, sorted on the category name
-  // Returns an array where each array element is an object
+  // Returns a key/value pair object
+  postsGroupedByCategoryKeyValue$ = this.postsWithCategorySorted$.pipe(
+    map(posts => posts.reduce((acc: { [key: string]: Post[] }, cur) => {
+      // spread the current posts 👇 if there are any for this category
+      acc[cur.category || ''] = [...(acc[cur.category || ''] || []), cur];
+      return acc;
+    }, {}))
+  );
+
+  // Use the groupBy RxJS operator
+  // Group all posts by category, sorted on the category name
+  // Returns an array where each array element is an *object*
   // containing the key and array of posts
   // Not currently used.
   postsGroupedByCategory2$ = this.postsWithCategorySorted$.pipe(
@@ -58,28 +75,14 @@ export class PostService {
       )
     ),
     // Emit one array of the grouped results
-    toArray(),
-    tap(x => console.log(x))
+    toArray()
   );
 
+  // Use array reduce
   // Group all posts by category, sorted on the category name
-  // Returns a key/value pair object, which is not iterable for the UI
+  // Returns the same result as the RxJS groupby
   // Not currently used
   postsGroupedByCategory3$ = this.postsWithCategorySorted$.pipe(
-    map(posts => posts.reduce((acc: { [key: string]: Post[] }, cur) => {
-      const key = cur.category || '';
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(cur);
-      return acc;
-    }, {}))
-  );
-
-  // Group all posts by category, sorted on the category name
-  // Returns the same result as the RxJS groupby, but uses reduce
-  // Not currently used
-  postsGroupedByCategory4$ = this.postsWithCategorySorted$.pipe(
     map(posts => posts.reduce((acc: [number, Post[]][], cur) => {
       const index = acc.findIndex(a => a && a[0] === cur.categoryId);
       let postsArray: Post[] = [];
@@ -96,23 +99,36 @@ export class PostService {
     }, []))
   );
 
-  // Group all posts by category and sorted on the category name
-  // All in one pipeline (for comparison)
+  // Use array reduce and Map()
+  // Group all posts by category, sorted on the category name
+  // Returns the same result as the RxJS groupby
   // Not currently used
-  postsGroupedByCategory5$ = combineLatest([
-    this.allPosts$,
-    this.categoryService.allCategories$
-  ]).pipe(
-    mergeMap(([posts, categories]) => {
-      // Match up each post's category id with the category name
-      const mappedPosts = this.mapCategories(posts, categories);
-      // Sort by category name
-      mappedPosts.sort((a, b) => (a.category || '') < (b.category || '') ? -1 : 1);
-      return mappedPosts;
-    }),
-    groupBy(post => post.categoryId, post => post),
-    mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
-    toArray(),
+  postsGroupedByCategory4$ = this.postsWithCategorySorted$.pipe(
+    map(posts => {
+      const groupedByCategoryMap = posts.reduce((groupedMap, post) => {
+        const postsForCategory = groupedMap.get(post.categoryId);
+        groupedMap.set(
+          post.categoryId,
+          postsForCategory ? [...postsForCategory, post] : [post]
+        );
+        return groupedMap;
+      }, new Map<number, Post[]>());
+      return groupedByCategoryMap.entries();
+    })
+  );
+
+  // Use array reduce (longer form)
+  // Group all posts by category, sorted on the category name
+  // Returns a key/value pair object
+  // Not currently used
+  postsGroupedByCategoryKeyValue2$ = this.postsWithCategorySorted$.pipe(
+    map(posts => posts.reduce((acc: { [key: string]: Post[] }, cur) => {
+      const key = cur.category || 'undefined';
+      const currentPostsForCategory = [...(acc[key] || [])];
+      acc[key] = [...currentPostsForCategory, cur];
+      return acc;
+    }, {})),
+    tap(x => console.log(x))
   );
 
   selectedCategorySubject = new BehaviorSubject<number>(0);
