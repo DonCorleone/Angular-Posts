@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, Observable, of, Subject, throwError, zip } from 'rxjs';
-import { catchError, concatAll, concatMap, groupBy, map, mergeMap, reduce, switchMap, tap, toArray } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, throwError, zip } from 'rxjs';
+import { catchError, concatAll, concatMap, groupBy, map, mergeMap, switchMap, tap, toArray } from 'rxjs/operators';
 import { PostCategory } from '../post-categories/post-category';
 import { PostCategoryService } from '../post-categories/post-category.service';
+import { TodoService } from '../todos/todo.service';
 import { UserService } from '../users/user.service';
 
 import { Post } from './post';
@@ -152,8 +153,21 @@ export class PostService {
     switchMap(userId => this.getPostsForUser(userId))
   );
 
+  // Retrieving multiple sets of related data
+  // Returns { posts: Post[], todos: Todo[] }
+  // This could be in a different service
+  // Not currently used
+  dataForUser$ = this.enteredUser$.pipe(
+    switchMap(userName => this.userService.getUserId(userName)),
+    switchMap(userId => forkJoin({
+      posts: this.getPostsForUser(userId),
+      toDos: this.todoService.getTodosForUser(userId)
+    }))
+  );
+
   constructor(private http: HttpClient,
               private userService: UserService,
+              private todoService: TodoService,
               private categoryService: PostCategoryService) { }
 
   private getPostsForUser(userId: number): Observable<Post[]> {
