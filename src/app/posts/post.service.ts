@@ -44,7 +44,11 @@ export class PostService {
     // Merge each grouped set of posts
     // For each group, zip combines the Observables
     // and emits a tuple with two elements: [number, Post[]]
+    // Using toArray ensures that mergeMap doesn't emit until
+    // the groupBy is done emitting.
     mergeMap(group => zip(of(group.key), group.pipe(toArray()))),
+    // Also works with combineLatest
+    // mergeMap(group => combineLatest([of(group.key), group.pipe(toArray())])),
     // Emit the tuples into a single array [number, Post[]][]
     toArray()
   );
@@ -166,9 +170,9 @@ export class PostService {
   );
 
   constructor(private http: HttpClient,
-              private userService: UserService,
-              private todoService: TodoService,
-              private categoryService: PostCategoryService) { }
+    private userService: UserService,
+    private todoService: TodoService,
+    private categoryService: PostCategoryService) { }
 
   private getPostsForUser(userId: number): Observable<Post[]> {
     const posts$ = this.http.get<Post[]>(`${this.postsUrl}?userId=^${userId}$`).pipe(
