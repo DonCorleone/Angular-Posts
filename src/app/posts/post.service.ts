@@ -1,7 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, throwError, zip } from 'rxjs';
-import { catchError, concatAll, concatMap, groupBy, map, mergeMap, switchMap, tap, toArray } from 'rxjs/operators';
+import {BehaviorSubject, combineLatest, forkJoin, Observable, of, Subject, throwError, zip} from 'rxjs';
+import {
+  catchError,
+  concatAll,
+  concatMap,
+  groupBy,
+  map,
+  mergeMap,
+  switchMap,
+  tap,
+  toArray
+} from 'rxjs/operators';
 import { PostCategory } from '../post-categories/post-category';
 import { PostCategoryService } from '../post-categories/post-category.service';
 import { TodoService } from '../todos/todo.service';
